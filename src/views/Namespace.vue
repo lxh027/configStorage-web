@@ -22,7 +22,7 @@
               </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="owner" label="所有者"></el-table-column>
+        <el-table-column prop="username" label="所有者"></el-table-column>
         <el-table-column prop="raft_id" label="集群ID">
           <template #default="scope">
             <el-button size="medium" round @click="goCluster(scope.row.raft_id)">
@@ -33,14 +33,14 @@
         <el-table-column prop="private_key" label="密钥"></el-table-column>
         <el-table-column label="状态" align="center">
           <template #default="scope">
-            <el-tag effect="dark" :type="scope.row.permission === 0 ? 'success': scope.row.permission=== 1 ? 'warning' : scope.row.permission === 2 ? 'danger' : 'info'">
-              <p v-if="scope.row.permission === 0">
+            <el-tag effect="dark" :type="scope.row.type === 0 ? 'success': scope.row.type=== 1 ? 'warning' : scope.row.type === 2 ? 'danger' : 'info'">
+              <p v-if="scope.row.type === 0">
                 Owner
               </p>
-              <p v-else-if="scope.row.permission === 1">
+              <p v-else-if="scope.row.type === 1">
                 Normal
               </p>
-              <p v-else-if="scope.row.permission === 2">
+              <p v-else-if="scope.row.type === 2">
                 Readonly
               </p>
             </el-tag>
@@ -48,7 +48,7 @@
         </el-table-column>
         <el-table-column label="操作" align="center">
           <template #default="scope">
-            <el-button v-if="scope.row.permission=== 0" type="text" icon="el-icon-s-grid"
+            <el-button v-if="scope.row.type=== 0" type="text" icon="el-icon-s-grid"
                        @click="setAuth(scope.row.id)">设置权限</el-button>
             <el-button v-else disabled type="text" icon="el-icon-s-grid">设置权限</el-button>
           </template>
@@ -68,7 +68,7 @@
           <el-select v-model="form.raft_id"  placeholder="请选择">
             <el-option v-for="item in options" :key="item.raft_id" :label="item.raft_id" :value="item.raft_id">
               <span style="float: left">{{ item.raft_id }}</span>
-              <span style="float: right; color: #8492a6; font-size: 13px">{{ item.addresses }}</span>
+              <span style="float: right; color: #8492a6; font-size: 13px">{{ item.address }}</span>
             </el-option>
           </el-select>
         </el-form-item>
@@ -88,10 +88,10 @@
           <el-input v-model="form2.username"></el-input>
         </el-form-item>
         <el-form-item label="权限">
-          <el-select v-model="form2.auth"  placeholder="请选择">
-            <el-option label="Normal" value="1" key="1"> <el-tag type="warning">Normal</el-tag> </el-option>
-            <el-option label="Readonly" value="2" key="2"> <el-tag type="danger">Readonly</el-tag></el-option>
-            <el-option label="Abandon" value="-1" key="-1"> <el-tag type="info">Abandon</el-tag> </el-option>
+          <el-select v-model="form2.auth"   placeholder="请选择">
+            <el-option label="Normal" :value=1 key=1> <el-tag type="warning">Normal</el-tag> </el-option>
+            <el-option label="Readonly" :value=2 key=2> <el-tag type="danger">Readonly</el-tag></el-option>
+            <el-option label="Abandon" :value=-1 key=-1> <el-tag type="info">Abandon</el-tag> </el-option>
           </el-select>
         </el-form-item>
       </el-form>
@@ -108,6 +108,8 @@
 <script>
 import { ref, reactive } from "vue";
 import { fetchNamespace, fetchCluster } from "../api/index";
+import { newNamespaces, getUserNamespaces, setUserNamespaceAuth} from "../api/namespace";
+import {getUserClusters} from "../api/cluster";
 import { useRouter } from "vue-router";
 import {ElMessage, ElMessageBox} from "element-plus";
 
@@ -124,7 +126,7 @@ export default {
     const pageTotal = ref(0);
     // 获取表格数据
     const getData = () => {
-      fetchNamespace(query).then((res) => {
+      getUserNamespaces(query).then((res) => {
         tableData.value = res.data.namespaces;
         pageTotal.value = res.data.count || 50;
       });
@@ -165,12 +167,10 @@ export default {
     const options = ref([]);
 
     const getOptions = () => {
-      fetchCluster(query).then((res) => {
+      getUserClusters(query).then((res) => {
         options.value = [];
         for (let i = 0; i<res.data.cluster.length; i++) {
-          if (res.data.cluster[i].auth === 1) {
-            options.value.push(res.data.cluster[i])
-          }
+          options.value.push(res.data.cluster[i])
         }
       });
     };
@@ -183,8 +183,14 @@ export default {
         type: "warning",
       })
           .then(() => {
-            ElMessage.success("添加成功");
-            addVisible.value = false
+            newNamespaces({name: form.name, raft_id: form.raft_id}).then((res) => {
+              if (res.status === 0) {
+                ElMessage.success("添加成功");
+                addVisible.value = false
+              } else {
+                ElMessage.error("添加失败");
+              }
+            })
             getData();
           })
           .catch(() => {});
@@ -208,8 +214,14 @@ export default {
         type: "warning",
       })
           .then(() => {
-            ElMessage.success("设置成功");
-            setAuthVisible.value = false
+            setUserNamespaceAuth({namespace_id: form2.namespace_id, username: form2.username, type: form2.auth}).then((res) => {
+              if (res.status === 0) {
+                ElMessage.success("设置成功");
+                addVisible.value = false
+              } else {
+                ElMessage.error("设置失败");
+              }
+            })
             getData();
           })
           .catch(() => {});

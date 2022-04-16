@@ -32,6 +32,7 @@ import { ref, reactive } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
+import {userLogin} from "../api/user";
 
 export default {
     setup() {
@@ -55,16 +56,17 @@ export default {
         };
         const login = ref(null);
         const submitForm = () => {
-            login.value.validate((valid) => {
-                if (valid) {
-                    ElMessage.success("登录成功");
-                    localStorage.setItem("ms_username", param.username);
-                    router.push("/");
-                } else {
-                    ElMessage.error("登录成功");
-                    return false;
-                }
-            });
+            userLogin(param).then((res) => {
+              if (res.status === 0) {
+                ElMessage.success("登录成功");
+                localStorage.setItem("ms_username", param.username);
+                localStorage.setItem("is_admin", res.data);
+                router.push("/");
+              } else {
+                ElMessage.error("登录失败");
+                return false;
+              }
+            })
         };
 
         const store = useStore();
