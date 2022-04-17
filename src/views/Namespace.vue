@@ -147,7 +147,7 @@ export default {
     const goConfig = (id, name) => {
       router.push({
         name: "config",
-        params: {
+        query: {
           id: id,
           namespace: name
         }

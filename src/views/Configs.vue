@@ -21,10 +21,6 @@
               </template>
             </el-table-column>
           </el-table>
-          <div class="pagination">
-            <el-pagination background layout="total, prev, pager, next" :current-page="dQuery.pageIndex"
-                           :page-size="dQuery.pageSize" :total="dPageTotal" @current-change="dHandlePageChange"></el-pagination>
-          </div>
         </el-tab-pane>
 
         <el-tab-pane :label="`操作记录`" name="operation">
@@ -48,8 +44,8 @@
               <el-table-column prop="username" label="用户"></el-table-column>
               <el-table-column label="状态" align="center">
                 <template #default="scope">
-                  <el-tag effect="dark" :type="scope.row.status === 0 ? 'success':'danger'">
-                    <p v-if="scope.row.status === 0">
+                  <el-tag effect="dark" :type="scope.row.status === 1 ? 'success':'danger'">
+                    <p v-if="scope.row.status === 1">
                       Committed
                     </p>
                     <p v-else>
@@ -100,30 +96,28 @@ import { ref, reactive } from "vue";
 import {fetchKey, fetchLog} from "../api";
 import { ElMessage, ElMessageBox } from "element-plus";
 import router from "../router";
+import {commit, delLog, getAllConfigs, getAllLogs, newLog} from "../api/log";
 
 export default {
   name: "config",
   setup() {
-    const namespaceID = router.currentRoute.value.params.id;
-    const namespace = router.currentRoute.value.params.namespace;
+    const namespaceID = router.currentRoute.value.query.id;
+    const namespace = router.currentRoute.value.query.namespace;
     const message = ref("data");
     const dQuery = reactive({
-      id: 0,
-      pageIndex: 1,
-      pageSize: 10,
+      namespace_id: Number(namespaceID),
     });
     const dTableData = ref([]);
-    const dPageTotal = ref(0);
     // 获取表格数据
     const dGetData = () => {
-      fetchKey(dQuery).then((res) => {
-        dTableData.value = res.data.data;
-        dPageTotal.value = res.data.count || 50;
+      getAllConfigs(dQuery).then((res) => {
+        //console.log(res)
+        dTableData.value = res.data;
       });
     };
 
     const lQuery = reactive({
-      id: 0,
+      namespace_id: Number(namespaceID),
       pageIndex: 1,
       pageSize: 10,
     });
@@ -131,7 +125,7 @@ export default {
     const lPageTotal = ref(0);
     // 获取表格数据
     const lGetData = () => {
-      fetchLog(lQuery).then((res) => {
+      getAllLogs(lQuery).then((res) => {
         lTableData.value = res.data.log;
         lPageTotal.value = res.data.count || 50;
       });
@@ -155,8 +149,13 @@ export default {
         type: "warning",
       })
           .then(() => {
-            // TODO del log
-            ElMessage.success("删除成功");
+            delLog({id: id}).then((res) => {
+              if (res.status === 0) {
+                ElMessage.success("删除成功");
+              } else {
+                ElMessage.error("删除失败");
+              }
+            })
             lGetData();
           })
           .catch(() => {});
@@ -167,8 +166,13 @@ export default {
         type: "warning",
       })
           .then(() => {
-            // TODO commit log
-            ElMessage.success("提交成功");
+            commit({id: id, namespace_id: Number(namespaceID)}).then((res) => {
+              if (res.status === 0) {
+                ElMessage.success("提交成功");
+              } else {
+                ElMessage.error("提交失败");
+              }
+            })
             lGetData()
           })
           .catch(() => {});
@@ -192,9 +196,14 @@ export default {
         type: "warning",
       })
           .then(() => {
-            // TODO del config
-            ElMessage.success("删除成功");
-            dGetData();
+            newLog({namespace_id: Number(namespaceID), key: row.key, value: row.value, type: 1}).then((res) => {
+              if (res.status === 0) {
+                ElMessage.success("添加成功");
+              } else {
+                ElMessage.error("添加失败");
+              }
+            })
+            lGetData();
           })
           .catch(() => {});
     }
@@ -207,9 +216,17 @@ export default {
         type: "warning",
       })
           .then(() => {
-            ElMessage.success("添加成功");
-            addVisible.value = false
-            dGetData();
+            console.log(namespaceID)
+            console.log(Number(namespaceID))
+            newLog({namespace_id: Number(namespaceID), key: form.key, value: form.value, type: 0}).then((res) => {
+              if (res.status === 0) {
+                ElMessage.success("添加成功");
+                addVisible.value = false
+              } else {
+                ElMessage.error("添加失败");
+              }
+            })
+            lGetData();
           })
           .catch(() => {});
     }
@@ -220,7 +237,6 @@ export default {
       message,
       dQuery,
       dTableData,
-      dPageTotal,
       lQuery,
       lTableData,
       lPageTotal,
