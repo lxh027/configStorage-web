@@ -56,8 +56,10 @@
               </el-table-column>
               <el-table-column label="操作" align="center">
                 <template #default="scope">
-                  <el-button type="text" icon="el-icon-s-promotion"
+                  <el-button v-if="scope.row.status === 0" type="text" icon="el-icon-s-promotion"
                              @click="lHandleCommit(scope.row.id)">提交</el-button>
+                  <el-button v-if="scope.row.status === 1" type="text" icon="el-icon-s-promotion" class="green"
+                             @click="lHandleCommit(scope.row.id)">回滚</el-button>
                   <el-button type="text" icon="el-icon-delete" class="red"
                              @click="lHandleDelete(scope.row.id)">删除</el-button>
                 </template>
@@ -152,11 +154,11 @@ export default {
             delLog({id: id}).then((res) => {
               if (res.status === 0) {
                 ElMessage.success("删除成功");
+                lGetData();
               } else {
                 ElMessage.error("删除失败");
               }
             })
-            lGetData();
           })
           .catch(() => {});
     }
@@ -169,11 +171,13 @@ export default {
             commit({id: id, namespace_id: Number(namespaceID)}).then((res) => {
               if (res.status === 0) {
                 ElMessage.success("提交成功");
+                lGetData();
+                dGetData();
               } else {
                 ElMessage.error("提交失败");
               }
             })
-            lGetData()
+
           })
           .catch(() => {});
     }
@@ -196,14 +200,14 @@ export default {
         type: "warning",
       })
           .then(() => {
-            newLog({namespace_id: Number(namespaceID), key: row.key, value: row.value, type: 1}).then((res) => {
+            newLog({namespace_id: Number(namespaceID), key: row.key.substring(namespace.length+1), value: row.value, type: 1}).then((res) => {
               if (res.status === 0) {
                 ElMessage.success("添加成功");
+                lGetData();
               } else {
                 ElMessage.error("添加失败");
               }
             })
-            lGetData();
           })
           .catch(() => {});
     }
@@ -222,11 +226,11 @@ export default {
               if (res.status === 0) {
                 ElMessage.success("添加成功");
                 addVisible.value = false
+                lGetData();
               } else {
                 ElMessage.error("添加失败");
               }
             })
-            lGetData();
           })
           .catch(() => {});
     }
@@ -263,6 +267,10 @@ export default {
 }
 .red {
   color: #ff0000;
+}
+
+.green {
+  color: #00a854;
 }
 </style>
 

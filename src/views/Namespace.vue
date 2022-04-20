@@ -91,7 +91,7 @@
           <el-select v-model="form2.auth"   placeholder="请选择">
             <el-option label="Normal" :value=1 key=1> <el-tag type="warning">Normal</el-tag> </el-option>
             <el-option label="Readonly" :value=2 key=2> <el-tag type="danger">Readonly</el-tag></el-option>
-            <el-option label="Abandon" :value=-1 key=-1> <el-tag type="info">Abandon</el-tag> </el-option>
+            <el-option label="Abandon" :value=-1 key=-1> <el-tag type="info">Banned</el-tag> </el-option>
           </el-select>
         </el-form-item>
       </el-form>
