@@ -51,6 +51,15 @@
             <el-button v-if="scope.row.type=== 0" type="text" icon="el-icon-s-grid"
                        @click="setAuth(scope.row.id)">设置权限</el-button>
             <el-button v-else disabled type="text" icon="el-icon-s-grid">设置权限</el-button>
+
+            <el-button v-if="scope.row.type=== 0" type="text" icon="el-icon-s-grid"
+                       @click="setCluster(scope.row.id, scope.row.raft_id)">更改集群位置</el-button>
+            <el-button v-else disabled type="text" icon="el-icon-s-grid">更改集群位置</el-button>
+
+            <el-button v-if="scope.row.type=== 0" type="text" icon="el-icon-s-grid" class="red"
+                       @click="deleteNamespace(scope.row.id)">删除</el-button>
+            <el-button v-else disabled type="text" icon="el-icon-s-grid">删除</el-button>
+
           </template>
         </el-table-column>
       </el-table>
@@ -82,6 +91,25 @@
       </template>
     </el-dialog>
 
+    <el-dialog title="更改集群" v-model="setClusterVisible" width="30%">
+      <el-form label-width="70px">
+        <el-form-item label="集群">
+          <el-select v-model="form3.raft_id"  placeholder="请选择">
+            <el-option v-for="item in options" :key="item.raft_id" :label="item.raft_id" :value="item.raft_id">
+              <span style="float: left">{{ item.raft_id }}</span>
+              <span style="float: right; color: #8492a6; font-size: 13px">{{ item.address }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="setClusterVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="changeCluster()">确 定</el-button>
+                </span>
+      </template>
+    </el-dialog>
+
     <el-dialog title="设置权限" v-model="setAuthVisible" width="30%">
       <el-form label-width="70px">
         <el-form-item label="用户名">
@@ -108,7 +136,7 @@
 <script>
 import { ref, reactive } from "vue";
 import { fetchNamespace, fetchCluster } from "../api/index";
-import { newNamespaces, getUserNamespaces, setUserNamespaceAuth} from "../api/namespace";
+import { newNamespaces, getUserNamespaces, setUserNamespaceAuth, delNamespace, updateNamespaceRaftID} from "../api/namespace";
 import {getUserClusters} from "../api/cluster";
 import { useRouter } from "vue-router";
 import {ElMessage, ElMessageBox} from "element-plus";
@@ -161,6 +189,7 @@ export default {
     });
 
     const handleAdd = () => {
+      getOptions()
       addVisible.value = true
     }
 
@@ -186,12 +215,12 @@ export default {
             newNamespaces({name: form.name, raft_id: form.raft_id}).then((res) => {
               if (res.status === 0) {
                 ElMessage.success("添加成功");
+                getData();
                 addVisible.value = false
               } else {
                 ElMessage.error("添加失败");
               }
             })
-            getData();
           })
           .catch(() => {});
     }
@@ -223,12 +252,12 @@ export default {
             setUserNamespaceAuth({namespace_id: form2.namespace_id, username: form2.username, type: form2.auth}).then((res) => {
               if (res.status === 0) {
                 ElMessage.success("设置成功");
+                getData();
                 addVisible.value = false
               } else {
                 ElMessage.error("设置失败");
               }
             })
-            getData();
           })
           .catch(() => {});
     }
@@ -238,6 +267,48 @@ export default {
       form2.auth = "";
       form2.namespace_id = id;
       setAuthVisible.value = true;
+    }
+
+    const deleteNamespace = (id) => {
+      ElMessageBox.confirm("确定要删除吗？", "提示", {
+        type: "warning",
+      })
+          .then(() => {
+            delNamespace({namespace_id: id}).then((res) => {
+              if (res.status === 0) {
+                ElMessage.success("删除成功");
+                getData();
+              } else {
+                ElMessage.error("删除失败");
+              }
+            })
+          })
+
+    }
+
+    const setClusterVisible = ref(false);
+    let form3 = reactive({
+      raft_id: "",
+      namespace_id: 0,
+    })
+
+    const setCluster = (id, raft_id) => {
+      getOptions()
+      form3.raft_id = raft_id
+      form3.namespace_id = id
+      setClusterVisible.value = true
+    }
+
+    const changeCluster = () => {
+      updateNamespaceRaftID(form3).then((res) => {
+        if (res.status === 0) {
+          ElMessage.success("更新成功");
+          getData();
+          setClusterVisible.value = false
+        } else {
+          ElMessage.error("更新失败");
+        }
+      })
     }
 
     return {
@@ -256,7 +327,12 @@ export default {
       setAuthVisible,
       form2,
       setNamespaceAuth,
-      setAuth
+      setAuth,
+      deleteNamespace,
+      form3,
+      setCluster,
+      changeCluster,
+      setClusterVisible
     };
   },
 };

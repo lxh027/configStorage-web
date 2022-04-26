@@ -23,3 +23,19 @@ export const setUserNamespaceAuth = query => {
         data: query
     })
 }
+
+export const delNamespace = query => {
+    return request({
+        url: "/namespace/deleteNamespace",
+        method: "post",
+        data: query
+    })
+}
+
+export const updateNamespaceRaftID = query => {
+    return request({
+        url: "/namespace/updateRaftID",
+        method: "post",
+        data: query
+    })
+}
