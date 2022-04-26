@@ -12,7 +12,7 @@
         </el-radio-group>
       </div>
       <el-row :gutter="12">
-        <el-col :span="24">
+        <el-col :span="20">
           <el-card shadow="hover">
             <div slot="header">
               <span>基本信息</span>
@@ -23,6 +23,32 @@
               <el-descriptions-item label="配置版本">{{basicInfo.config_version}}</el-descriptions-item>
             </el-descriptions>
           </el-card>
+        </el-col>
+        <el-col :span="4">
+          <el-row>
+            <el-card shadow="hover" style="width: -moz-available">
+              <div slot="header">
+                <span>平均选举时间</span>
+              </div>
+              <div class="grid-content grid-con-1">
+                <div class="grid-cont-right">
+                  <div class="grid-num">{{timeInfo.revote_time}}ms</div>
+                </div>
+              </div>
+            </el-card>
+          </el-row>
+          <el-row>
+              <el-card shadow="hover"  style="width: -moz-available">
+                <div slot="header">
+                  <span>平均提交时间</span>
+                </div>
+                <div class="grid-content grid-con-1">
+                  <div class="grid-cont-right">
+                    <div class="grid-num">{{timeInfo.commit_time}}ms</div>
+                  </div>
+                </div>
+              </el-card>
+          </el-row>
         </el-col>
 
       </el-row>
@@ -84,7 +110,7 @@ export default {
     })
 
     const basicInfo = ref({})
-
+    const timeInfo = ref({})
     const flushCharts = () => {
       if (document.getElementById('memory_chart')) {
         const chartDom = document.getElementById('memory_chart');
@@ -99,6 +125,7 @@ export default {
           ElMessage.error("获取监控失败");
           return
         }
+        timeInfo.value = res.data.time
         basicInfo.value = res.data.basic;
         memoryChart.setOption(memoryChartsOption(res.data.memory))
         raftChart.setOption(raftChartsOption(res.data.raft))
@@ -130,13 +157,35 @@ export default {
       peerData,
       peerID,
       flushCharts,
-      basicInfo
+      basicInfo,
+      timeInfo
     };
   },
 };
 </script>
 
 <style>
+.grid-con-1 .grid-con-icon {
+  background: rgb(45, 140, 240);
+}
+
+.grid-content {
+  height: 50px;
+}
+
+.grid-con-1 .grid-num {
+  color: rgb(45, 140, 240);
+}
+
+.grid-con-2 .grid-con-icon {
+  background: rgb(100, 213, 114);
+}
+
+.grid-con-2 .grid-num {
+  color: rgb(45, 140, 240);
+}
+
+
 .handle-box {
   margin-bottom: 20px;
 }
