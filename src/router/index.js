@@ -20,6 +20,14 @@ const routes = [
                 component: () => import(/* webpackChunkName: "dashboard" */ "../views/Configs.vue")
             },
             {
+                path: "/monitor",
+                name: "monitor",
+                meta: {
+                    title: "集群监控"
+                },
+                component: () => import(/* webpackChunkName: "dashboard" */ "../views/Monitor.vue")
+            },
+            {
                 path: "/users",
                 name: "users",
                 meta: {

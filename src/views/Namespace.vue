@@ -196,8 +196,14 @@ export default {
           .catch(() => {});
     }
 
-    const goCluster = () => {
+    const goCluster = (raft_id) => {
       //TODO go to cluster monitor
+      router.push({
+        name: "monitor",
+        query: {
+          raft_id: raft_id,
+        }
+      })
     }
 
 

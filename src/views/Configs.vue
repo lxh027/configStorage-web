@@ -220,8 +220,6 @@ export default {
         type: "warning",
       })
           .then(() => {
-            console.log(namespaceID)
-            console.log(Number(namespaceID))
             newLog({namespace_id: Number(namespaceID), key: form.key, value: form.value, type: 0}).then((res) => {
               if (res.status === 0) {
                 ElMessage.success("添加成功");
