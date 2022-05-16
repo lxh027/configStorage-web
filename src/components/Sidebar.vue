@@ -41,7 +41,7 @@ export default {
             {
                 icon: "el-icon-lx-home",
                 index: "/dashboard",
-                title: "系统首页",
+                title: "集群列表",
             },
             {
                 icon: "el-icon-user",

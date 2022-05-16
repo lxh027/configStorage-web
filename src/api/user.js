@@ -23,3 +23,11 @@ export const userLogin = query => {
         data: query
     })
 }
+
+export const userLogout = query => {
+    return request({
+        url: "/user/logout",
+        method: 'post',
+        data: query
+    })
+}
